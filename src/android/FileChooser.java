@@ -53,10 +53,10 @@ public class FileChooser extends CordovaPlugin {
 
         if (requestCode == PICK_FILE_REQUEST && callback != null) {
 
-            if(requestCode == PICKFILE_RESULT_CODE) {
-                if(null != data) { // checking empty selection
-                   if(null != data.getClipData()) { // checking multiple selection or not
-                      for(int i = 0; i < data.getClipData().getItemCount(); i++) {
+            if (resultCode == Activity.RESULT_OK) {
+                if (data != null) {
+                   if (data.getClipData() != null) {
+                      for (int i = 0; i < data.getClipData().getItemCount(); i++) {
                          Uri uri = data.getClipData().getItemAt(i).getUri();
                       }
                    } else {
