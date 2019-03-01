@@ -55,15 +55,15 @@ public class FileChooser extends CordovaPlugin {
 
             if (resultCode == Activity.RESULT_OK) {
                 if (data != null) {
-                   Uri uri = null;
+                   String uris = "";
                    if (data.getClipData() != null) {
                       for (int i = 0; i < data.getClipData().getItemCount(); i++) {
-                         uri = data.getClipData().getItemAt(i).getUri();
+                         uris += data.getClipData().getItemAt(i).getUri().toString() + ", ";
                       }
                    } else {
-                      uri = data.getData();
+                      uris = data.getData().toString();
                    }
-                   callback.success(uri.toString());
+                   callback.success(uris);
                 } else {
                     callback.error(resultCode);
                 }
