@@ -71,10 +71,9 @@ public class FileChooser extends CordovaPlugin {
         }
     }
 
-    private String resolveNativePath(uri) throws JSONException {
-        Uri pvUrl = Uri.parse(uri);
+    private String resolveNativePath(Uri uri) throws JSONException {
         Context appContext = this.cordova.getActivity().getApplicationContext();
-        String filePath = getPath(appContext, pvUrl);
+        String filePath = getPath(appContext, uri);
         if (filePath == GET_PATH_ERROR_ID) {
             return "code://" + GET_PATH_ERROR_CODE;
         }
