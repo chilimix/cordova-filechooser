@@ -37,8 +37,9 @@ public class FileChooser extends CordovaPlugin {
         intent.setType("*/*");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
 
-        Intent chooser = Intent.createChooser(intent, "Select File");
+        Intent chooser = Intent.createChooser(intent, "Select Files");
         cordova.startActivityForResult(this, chooser, PICK_FILE_REQUEST);
 
         PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
@@ -52,21 +53,28 @@ public class FileChooser extends CordovaPlugin {
 
         if (requestCode == PICK_FILE_REQUEST && callback != null) {
 
-            if (resultCode == Activity.RESULT_OK) {
-
-                Uri uri = data.getData();
-
-                if (uri != null) {
-
-                    Log.w(TAG, uri.toString());
-                    callback.success(uri.toString());
-
+            if(requestCode == PICKFILE_RESULT_CODE) {
+                if(null != data) { // checking empty selection
+                   if(null != data.getClipData()) { // checking multiple selection or not
+                      for(int i = 0; i < data.getClipData().getItemCount(); i++) {
+                         Uri uri = data.getClipData().getItemAt(i).getUri();
+                      }
+                   } else {
+                      Uri uri = data.getData();
+                   }
+                   callback.success(uri.toString());
                 } else {
-
-                    callback.error("File uri was null");
-
+                    callback.error(resultCode);
                 }
-
+            // }
+            // if (resultCode == Activity.RESULT_OK) {
+            //     Uri uri = data.getData();
+            //     if (uri != null) {
+            //         Log.w(TAG, uri.toString());
+            //         callback.success(uri.toString());
+            //     } else {
+            //         callback.error("File uri was null");
+            //     }
             } else if (resultCode == Activity.RESULT_CANCELED) {
 
                 // TODO NO_RESULT or error callback?
