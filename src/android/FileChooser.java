@@ -77,7 +77,35 @@ public class FileChooser extends CordovaPlugin {
         return "file://" + getPath(appContext, uri);
     }
 
-    private static String getPath(final Context context, final Uri uri) {
+    public static String getPath(@NonNull Uri uri) {
+        String path = uri.getEncodedPath();
+        final int splitIndex = path.indexOf('/', 1);
+        final String tag = Uri.decode(path.substring(1, splitIndex));
+        path = Uri.decode(path.substring(splitIndex + 1));
+
+        if (!"root".equalsIgnoreCase(tag)) {
+            throw new IllegalArgumentException(
+                    String.format("Can't decode paths to '%s', only for 'root' paths.",
+                            tag));
+        }
+
+        final File root = new File("/");
+
+        File file = new File(root, path);
+        try {
+            file = file.getCanonicalFile();
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Failed to resolve canonical path for " + file);
+        }
+
+        if (!file.getPath().startsWith(root.getPath())) {
+            throw new SecurityException("Resolved path jumped beyond configured root");
+        }
+
+        return file.getPath();
+    }
+
+    //private static String getPath(final Context context, final Uri uri) {
         //final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
         // if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
         //     if (isMediaDocument(uri)) {
@@ -98,23 +126,23 @@ public class FileChooser extends CordovaPlugin {
         //     }
         // }
         // else 
-        if ("content".equalsIgnoreCase(uri.getScheme())) {
-            return getDataColumn(context, uri, null, null);
-        }
-        else if ("file".equalsIgnoreCase(uri.getScheme())) {
-            return uri.getPath();
-        }
-        return null;
-    }
+    //     if ("content".equalsIgnoreCase(uri.getScheme())) {
+    //         return getDataColumn(context, uri, null, null);
+    //     }
+    //     else if ("file".equalsIgnoreCase(uri.getScheme())) {
+    //         return uri.getPath();
+    //     }
+    //     return null;
+    // }
 
-    private static String getDataColumn(Context context, Uri uri, String selection, String[] selectionArgs) {
-        final String column = "_data";
-        final String[] projection = { column };
-        final Cursor cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, null);
-        if (cursor != null && cursor.moveToFirst()) {
-            final int column_index = cursor.getColumnIndexOrThrow(column);
-            return cursor.getString(column_index);
-        }
-        return null;
-    }
+    // private static String getDataColumn(Context context, Uri uri, String selection, String[] selectionArgs) {
+    //     final String column = "_data";
+    //     final String[] projection = { column };
+    //     final Cursor cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, null);
+    //     if (cursor != null && cursor.moveToFirst()) {
+    //         final int column_index = cursor.getColumnIndexOrThrow(column);
+    //         return cursor.getString(column_index);
+    //     }
+    //     return null;
+    // }
 }
