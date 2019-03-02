@@ -57,10 +57,10 @@ public class FileChooser extends CordovaPlugin {
                    String uris = "";
                    if (data.getClipData() != null) {
                       for (int i = 0; i < data.getClipData().getItemCount(); i++) {
-                         uris += resolveNativePath(data.getClipData().getItemAt(i).getUri()) + ", ";
+                         uris += this.resolveNativePath(data.getClipData().getItemAt(i).getUri()) + ", ";
                       }
                    } else {
-                      uris = resolveNativePath(data.getData());
+                      uris = this.resolveNativePath(data.getData());
                    }
                    callback.success(uris);
                 } else {
@@ -77,7 +77,7 @@ public class FileChooser extends CordovaPlugin {
 
     private String resolveNativePath(Uri uri) throws JSONException {
         Context appContext = this.cordova.getActivity().getApplicationContext();
-        return "file://" + getPath(uri);
+        return "file://" + this.getPath(uri);
     }
 
     public static String getPath(Uri uri) {
