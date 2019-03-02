@@ -3,6 +3,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.Context;
 import android.content.ContentResolver;
+import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
@@ -57,10 +58,10 @@ public class FileChooser extends CordovaPlugin {
                    String uris = "";
                    if (data.getClipData() != null) {
                       for (int i = 0; i < data.getClipData().getItemCount(); i++) {
-                         uris += this.resolveNativePath(data.getClipData().getItemAt(i).getUri()) + ", ";
+                         uris += resolveNativePath(data.getClipData().getItemAt(i).getUri()) + ", ";
                       }
                    } else {
-                      uris = this.resolveNativePath(data.getData());
+                      uris = resolveNativePath(data.getData());
                    }
                    callback.success(uris);
                 } else {
@@ -77,75 +78,47 @@ public class FileChooser extends CordovaPlugin {
 
     private String resolveNativePath(Uri uri) {
         Context appContext = this.cordova.getActivity().getApplicationContext();
-        return "file://" + this.getPath(uri);
+        return "file://" + this.getPath(appContext, uri);
     }
 
-    public static String getPath(Uri uri) {
-        String path = uri.getEncodedPath();
-        final int splitIndex = path.indexOf('/', 1);
-        final String tag = Uri.decode(path.substring(1, splitIndex));
-        path = Uri.decode(path.substring(splitIndex + 1));
-
-        if (!"root".equalsIgnoreCase(tag)) {
-            throw new IllegalArgumentException(
-                    String.format("Can't decode paths to '%s', only for 'root' paths.",
-                            tag));
+    private static String getPath(final Context context, final Uri uri) {
+        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+            if (isMediaDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+                Uri contentUri = null;
+                if ("image".equals(type)) {
+                    contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                } else if ("video".equals(type)) {
+                    contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+                } else if ("audio".equals(type)) {
+                    contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                }
+                final String selection = "_id=?";
+                final String[] selectionArgs = new String[] { split[1] };
+                return getDataColumn(context, contentUri, selection, selectionArgs);
+            }
         }
-
-        final File root = new File("/");
-
-        File file = new File(root, path);
-        try {
-            file = file.getCanonicalFile();
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Failed to resolve canonical path for " + file);
+        else 
+        if ("content".equalsIgnoreCase(uri.getScheme())) {
+            return getDataColumn(context, uri, null, null);
         }
-
-        if (!file.getPath().startsWith(root.getPath())) {
-            throw new SecurityException("Resolved path jumped beyond configured root");
+        else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            return uri.getPath();
         }
-
-        return file.getPath();
+        return null;
     }
 
-    //private static String getPath(final Context context, final Uri uri) {
-        //final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
-        // if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
-        //     if (isMediaDocument(uri)) {
-        //         final String docId = DocumentsContract.getDocumentId(uri);
-        //         final String[] split = docId.split(":");
-        //         final String type = split[0];
-        //         Uri contentUri = null;
-        //         if ("image".equals(type)) {
-        //             contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        //         } else if ("video".equals(type)) {
-        //             contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-        //         } else if ("audio".equals(type)) {
-        //             contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        //         }
-        //         final String selection = "_id=?";
-        //         final String[] selectionArgs = new String[] { split[1] };
-        //         return getDataColumn(context, contentUri, selection, selectionArgs);
-        //     }
-        // }
-        // else 
-    //     if ("content".equalsIgnoreCase(uri.getScheme())) {
-    //         return getDataColumn(context, uri, null, null);
-    //     }
-    //     else if ("file".equalsIgnoreCase(uri.getScheme())) {
-    //         return uri.getPath();
-    //     }
-    //     return null;
-    // }
-
-    // private static String getDataColumn(Context context, Uri uri, String selection, String[] selectionArgs) {
-    //     final String column = "_data";
-    //     final String[] projection = { column };
-    //     final Cursor cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, null);
-    //     if (cursor != null && cursor.moveToFirst()) {
-    //         final int column_index = cursor.getColumnIndexOrThrow(column);
-    //         return cursor.getString(column_index);
-    //     }
-    //     return null;
-    // }
+    private static String getDataColumn(Context context, Uri uri, String selection, String[] selectionArgs) {
+        final String column = "_data";
+        final String[] projection = { column };
+        final Cursor cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            final int column_index = cursor.getColumnIndexOrThrow(column);
+            return cursor.getString(column_index);
+        }
+        return null;
+    }
 }
