@@ -28,12 +28,10 @@ public class FileChooser extends CordovaPlugin {
 
     @Override
     public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
-
         if (action.equals(ACTION_OPEN)) {
             chooseFile(callbackContext);
             return true;
         }
-
         return false;
     }
 
@@ -86,7 +84,7 @@ public class FileChooser extends CordovaPlugin {
     private JSONObject resolveNativePath(Uri uri) throws JSONException {
         JSONObject urlObj = new JSONObject();
         Context appContext = this.cordova.getActivity().getApplicationContext();
-        urlObj.put("uri", getPath(appContext, uri));
+        urlObj.put("uri", "file://" + getPath(appContext, uri));
         return urlObj;
     }
 
