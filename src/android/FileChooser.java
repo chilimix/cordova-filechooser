@@ -6,6 +6,9 @@ import android.content.ContentResolver;
 import android.net.Uri;
 import android.util.Log;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.apache.cordova.CordovaArgs;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
