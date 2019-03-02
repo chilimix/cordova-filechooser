@@ -14,6 +14,9 @@ import org.apache.cordova.CordovaArgs;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.json.JSONException;
 
 public class FileChooser extends CordovaPlugin {
@@ -55,13 +58,13 @@ public class FileChooser extends CordovaPlugin {
         if (requestCode == PICK_FILE_REQUEST && callback != null) {
             if (resultCode == Activity.RESULT_OK) {
                 if (data != null) {
-                   String uris = "";
+                   JSONArray uris = new JSONArray();
                    if (data.getClipData() != null) {
                       for (int i = 0; i < data.getClipData().getItemCount(); i++) {
-                         uris += resolveNativePath(data.getClipData().getItemAt(i).getUri()) + ", ";
+                         uris.put(resolveNativePath(data.getClipData().getItemAt(i).getUri()));
                       }
                    } else {
-                      uris = resolveNativePath(data.getData());
+                      uris.put(resolveNativePath(data.getData()));
                    }
                    callback.success(uris);
                 } else {
@@ -76,9 +79,11 @@ public class FileChooser extends CordovaPlugin {
         }
     }
 
-    private String resolveNativePath(Uri uri) {
+    private JSONObject resolveNativePath(Uri uri) {
+        JSONObject urlObj = new JSONObject();
         Context appContext = this.cordova.getActivity().getApplicationContext();
-        return "file://" + this.getPath(appContext, uri);
+        urlObj.put(getPath(appContext, uri));
+        return urlObj
     }
 
     private static String getPath(final Context context, final Uri uri) { 
