@@ -58,15 +58,19 @@ public class FileChooser extends CordovaPlugin {
         if (requestCode == PICK_FILE_REQUEST && callback != null) {
             if (resultCode == Activity.RESULT_OK) {
                 if (data != null) {
-                   JSONArray uris = new JSONArray();
-                   if (data.getClipData() != null) {
-                      for (int i = 0; i < data.getClipData().getItemCount(); i++) {
-                         uris.put(resolveNativePath(data.getClipData().getItemAt(i).getUri()));
-                      }
-                   } else {
-                      uris.put(resolveNativePath(data.getData()));
+                   try {
+                    JSONArray uris = new JSONArray();
+                    if (data.getClipData() != null) {
+                        for (int i = 0; i < data.getClipData().getItemCount(); i++) {
+                            uris.put(resolveNativePath(data.getClipData().getItemAt(i).getUri()));
+                        }
+                    } else {
+                        uris.put(resolveNativePath(data.getData()));
+                    }
+                    callback.success(uris);
+                   } catch (JSONException e) {
+                    callback.error(e);
                    }
-                   callback.success(uris);
                 } else {
                     callback.error(resultCode);
                 }
@@ -79,7 +83,7 @@ public class FileChooser extends CordovaPlugin {
         }
     }
 
-    private JSONObject resolveNativePath(Uri uri) {
+    private JSONObject resolveNativePath(Uri uri) throws JSONException {
         JSONObject urlObj = new JSONObject();
         Context appContext = this.cordova.getActivity().getApplicationContext();
         urlObj.put("uri", getPath(appContext, uri));
