@@ -95,7 +95,7 @@ public class FileChooser extends CordovaPlugin {
         else if ("file".equalsIgnoreCase(uri.getScheme())) {
             return uri.getPath();
         }
-        return uri;
+        return uri.toString();
     }
 
     private static String getDataColumn(Context context, Uri uri, String selection, String[] selectionArgs) {
