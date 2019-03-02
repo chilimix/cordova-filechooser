@@ -69,7 +69,7 @@ public class FileChooser extends CordovaPlugin {
                     }
                     callback.success(uris);
                    } catch (JSONException e) {
-                    callback.error(e);
+                    callback.error(e.toString());
                    }
                 } else {
                     callback.error(resultCode);
