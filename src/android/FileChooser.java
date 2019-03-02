@@ -83,7 +83,7 @@ public class FileChooser extends CordovaPlugin {
         JSONObject urlObj = new JSONObject();
         Context appContext = this.cordova.getActivity().getApplicationContext();
         urlObj.put("uri", getPath(appContext, uri));
-        return urlObj
+        return urlObj;
     }
 
     private static String getPath(final Context context, final Uri uri) { 
